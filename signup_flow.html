@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Luminary — Sign Up</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0a0e1a;
+      --surface:   #111827;
+      --surface2:  #1a2235;
+      --gold:      #c9a96e;
+      --gold-lt:   #e8cfa0;
+      --text:      #e8e6e0;
+      --muted:     #7a8299;
+      --error:     #e07070;
+      --success:   #6fcf97;
+      --radius:    18px;
+      --trans:     0.45s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* ── Phone Shell ── */
+    .shell {
+      width: 390px;
+      height: 844px;
+      background: var(--bg);
+      border-radius: 52px;
+      box-shadow:
+        0 0 0 10px #1c2233,
+        0 0 0 12px #0f1420,
+        0 40px 120px rgba(0,0,0,0.7),
+        inset 0 0 60px rgba(201,169,110,0.03);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* notch */
+    .shell::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 50%; transform: translateX(-50%);
+      width: 120px; height: 34px;
+      background: #0f1420;
+      border-radius: 0 0 24px 24px;
+      z-index: 100;
+    }
+
+    /* ambient glow */
+    .glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-1 { width: 280px; height: 280px; background: rgba(201,169,110,0.12); top: -80px; right: -60px; }
+    .glow-2 { width: 200px; height: 200px; background: rgba(99,130,210,0.08); bottom: 80px; left: -40px; }
+
+    /* ── Progress Bar ── */
+    .progress-wrap {
+      position: absolute;
+      top: 54px; left: 28px; right: 28px;
+      z-index: 10;
+      display: flex;
+      gap: 6px;
+    }
+    .progress-wrap.hidden { opacity: 0; pointer-events: none; }
+    .prog-seg {
+      flex: 1; height: 2px;
+      background: rgba(201,169,110,0.2);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+    .prog-seg .fill {
+      position: absolute; inset: 0;
+      background: var(--gold);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+    .prog-seg.active .fill  { transform: scaleX(1); }
+    .prog-seg.done .fill    { transform: scaleX(1); background: var(--gold); }
+
+    /* ── Screens ── */
+    .screens {
+      position: relative;
+      width: 100%; height: 100%;
+      z-index: 1;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      padding: 100px 32px 40px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(40px);
+      transition: opacity var(--trans), transform var(--trans);
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateX(0);
+    }
+    .screen.exit {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+
+    /* ── Typography ── */
+    .label-super {
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 42px;
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    h1 em { font-style: italic; color: var(--gold-lt); }
+    .sub {
+      font-size: 13.5px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+
+    /* ── Floating Label Input ── */
+    .field {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .field input, .field textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid rgba(201,169,110,0.15);
+      border-radius: 12px;
+      padding: 22px 18px 8px;
+      font-size: 15px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .field input:focus, .field textarea:focus {
+      border-color: rgba(201,169,110,0.55);
+      box-shadow: 0 0 0 4px rgba(201,169,110,0.08);
+    }
+    .field label {
+      position: absolute;
+      top: 50%; left: 18px;
+      transform: translateY(-50%);
+      font-size: 14px;
+      color: var(--muted);
+      pointer-events: none;
+      transition: top 0.25s, font-size 0.25s, color 0.25s;
+    }
+    .field input:focus + label,
+    .field input:not(:placeholder-shown) + label {
+      top: 12px;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .field .eye {
+      position: absolute;
+      right: 16px; top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 16px;
+      transition: color 0.2s;
+      user-select: none;
+    }
+    .field .eye:hover { color: var(--gold); }
+    .field .hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 6px;
+      padding-left: 4px;
+      display: none;
+    }
+    .field .hint.show { display: block; }
+    .field .hint.error { color: var(--error); }
+    .field .hint.ok    { color: var(--success); }
+
+    /* strength bar */
+    .strength-bar {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+    .strength-seg {
+      flex: 1; height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 3px;
+      transition: background 0.3s;
+    }
+    .s-weak   { background: var(--error) !important; }
+    .s-medium { background: #e0c070 !important; }
+    .s-strong { background: var(--success) !important; }
+
+    /* ── Interest Pills ── */
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .pill {
+      padding: 9px 18px;
+      border-radius: 50px;
+      background: var(--surface);
+      border: 1.5px solid rgba(201,169,110,0.18);
+      font-size: 13px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.25s;
+      user-select: none;
+    }
+    .pill:hover { border-color: rgba(201,169,110,0.4); color: var(--gold-lt); }
+    .pill.selected {
+      background: rgba(201,169,110,0.14);
+      border-color: var(--gold);
+      color: var(--gold-lt);
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      width: 100%;
+      padding: 17px;
+      border-radius: var(--radius);
+      border: none;
+      background: linear-gradient(135deg, #c9a96e 0%, #a07840 100%);
+      color: #0a0e1a;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      box-shadow: 0 8px 28px rgba(201,169,110,0.3);
+      margin-top: auto;
+    }
+    .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(201,169,110,0.38); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .btn-ghost {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 14px;
+      display: block;
+      width: 100%;
+      text-align: center;
+      transition: color 0.2s;
+    }
+    .btn-ghost:hover { color: var(--text); }
+
+    .back-btn {
+      position: absolute;
+      top: 60px; left: 28px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 20px;
+      cursor: pointer;
+      z-index: 10;
+      transition: color 0.2s, transform 0.2s;
+      padding: 4px;
+    }
+    .back-btn:hover { color: var(--gold); transform: translateX(-2px); }
+    .back-btn.hidden { display: none; }
+
+    /* ── Social Login ── */
+    .divider {
+      display: flex; align-items: center;
+      gap: 12px; color: var(--muted);
+      font-size: 12px; margin: 20px 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1;
+      height: 1px; background: rgba(255,255,255,0.07);
+    }
+
+    .social-row { display: flex; gap: 12px; }
+    .social-btn {
+      flex: 1; padding: 13px;
+      background: var(--surface);
+      border: 1.5px solid rgba(255,255,255,0.07);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: border-color 0.25s, background 0.25s;
+    }
+    .social-btn:hover { border-color: rgba(201,169,110,0.25); background: var(--surface2); }
+
+    .terms {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+    .terms a { color: var(--gold); text-decoration: none; }
+
+    /* ── Success Screen ── */
+    .success-ring {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      background: rgba(201,169,110,0.1);
+      border: 2px solid rgba(201,169,110,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+      animation: pulse-ring 2s infinite;
+    }
+    .success-ring svg { width: 44px; height: 44px; }
+    @keyframes pulse-ring {
+      0%,100% { box-shadow: 0 0 0 0 rgba(201,169,110,0.25); }
+      50%      { box-shadow: 0 0 0 14px rgba(201,169,110,0); }
+    }
+
+    .avatar-preview {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c9a96e, #7a5030);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 26px;
+      font-weight: 600;
+      color: #fff;
+      margin: 0 auto 12px;
+      box-shadow: 0 6px 22px rgba(201,169,110,0.3);
+    }
+
+    .chosen-pills {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      justify-content: center;
+      margin-top: 16px;
+    }
+    .chosen-pill {
+      padding: 6px 14px;
+      border-radius: 50px;
+      background: rgba(201,169,110,0.12);
+      border: 1px solid rgba(201,169,110,0.3);
+      font-size: 12px;
+      color: var(--gold-lt);
+    }
+
+    /* ── Checkbox ── */
+    .check-row {
+      display: flex; align-items: flex-start; gap: 12px;
+      margin-bottom: 20px;
+    }
+    .check-row input[type="checkbox"] { display: none; }
+    .check-box {
+      width: 20px; height: 20px; min-width: 20px;
+      border-radius: 6px;
+      border: 1.5px solid rgba(201,169,110,0.3);
+      background: var(--surface);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      margin-top: 1px;
+    }
+    .check-box.checked {
+      background: rgba(201,169,110,0.2);
+      border-color: var(--gold);
+    }
+    .check-box svg { display: none; }
+    .check-box.checked svg { display: block; }
+    .check-label { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+    .check-label a { color: var(--gold); text-decoration: none; }
+
+    /* ── Welcome Illustration ── */
+    .hero-art {
+      display: flex; justify-content: center;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .art-ring {
+      width: 120px; height: 120px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(201,169,110,0.2) 0%, transparent 60%);
+      display: flex; align-items: center; justify-content: center;
+      animation: spin 12s linear infinite;
+    }
+    .art-inner {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1.5px solid rgba(201,169,110,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      animation: spin 12s linear infinite reverse;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Screen-specific scrollable area ── */
+    .scroll-area {
+      overflow-y: auto;
+      flex: 1;
+      padding-bottom: 12px;
+      scrollbar-width: none;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+
+    /* ── Tooltip / info badge ── */
+    .secure-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 11px; color: var(--muted);
+      background: rgba(111,207,151,0.08);
+      border: 1px solid rgba(111,207,151,0.2);
+      border-radius: 50px;
+      padding: 5px 12px;
+      margin-bottom: 20px;
+    }
+    .secure-badge svg { width: 12px; height: 12px; color: var(--success); }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ambient glows -->
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <!-- progress bar (steps 2-5) -->
+  <div class="progress-wrap hidden" id="progressWrap">
+    <div class="prog-seg" id="p0"><div class="fill"></div></div>
+    <div class="prog-seg" id="p1"><div class="fill"></div></div>
+    <div class="prog-seg" id="p2"><div class="fill"></div></div>
+    <div class="prog-seg" id="p3"><div class="fill"></div></div>
+  </div>
+
+  <!-- back button -->
+  <button class="back-btn hidden" id="backBtn" onclick="goBack()" aria-label="Go back">&#8592;</button>
+
+  <div class="screens">
+
+    <!-- ═══════════════════════════════════════ SCREEN 0 — WELCOME -->
+    <div class="screen active" id="screen-0">
+      <div class="hero-art">
+        <div class="art-ring">
+          <div class="art-inner">✦</div>
+        </div>
+      </div>
+      <div class="label-super">Welcome to</div>
+      <h1>Luminary<br /><em>Experience</em></h1>
+      <p class="sub">A curated space for the things you love. Join thousands already discovering their next favourite thing.</p>
+
+      <div class="divider">continue with</div>
+      <div class="social-row">
+        <button class="social-btn" onclick="nextScreen()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Google
+        </button>
+        <button class="social-btn" onclick="nextScreen()">
+          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </button>
+      </div>
+
+      <div class="divider">or sign up with email</div>
+      <button class="btn-primary" onclick="nextScreen()">Create Account →</button>
+      <button class="btn-ghost" onclick="nextScreen()">Already have an account? Sign in</button>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SCREEN 1 — NAME -->
+    <div class="screen" id="screen-1">
+      <div class="label-super">Step 1 of 4</div>
+      <h1>What should<br />we <em>call you?</em></h1>
+      <p class="sub">We'll personalise your experience around you.</p>
+      <div class="field">
+        <input type="text" id="firstName" placeholder=" " oninput="validateName()" />
+        <label>First Name</label>
+      </div>
+      <div class="field">
+        <input type="text" id="lastName" placeholder=" " oninput="validateName()" />
+        <label>Last Name</label>
+      </div>
+      <div class="hint" id="nameHint"></div>
+      <div style="margin-top: auto;">
+        <button class="btn-primary" id="btnName" onclick="submitName()" disabled>Continue →</button>
+        <button class="btn-ghost" onclick="nextScreen()">Skip for now</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SCREEN 2 — EMAIL -->
+    <div class="screen" id="screen-2">
+      <div class="label-super">Step 2 of 4</div>
+      <h1>Your<br /><em>Email</em></h1>
+      <p class="sub">We keep it private. No spam, ever — just the good stuff.</p>
+      <div class="field">
+        <input type="email" id="emailInput" placeholder=" " oninput="validateEmail()" autocomplete="email" />
+        <label>Email Address</label>
+        <div class="hint" id="emailHint"></div>
+      </div>
+      <div style="margin-top: auto;">
+        <button class="btn-primary" id="btnEmail" onclick="submitEmail()" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SCREEN 3 — PASSWORD -->
+    <div class="screen" id="screen-3">
+      <div class="label-super">Step 3 of 4</div>
+      <h1>Create a<br /><em>Password</em></h1>
+
+      <div class="secure-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        256-bit encrypted & secure
+      </div>
+
+      <div class="field">
+        <input type="password" id="passInput" placeholder=" " oninput="validatePass()" />
+        <label>Password</label>
+        <span class="eye" onclick="togglePass('passInput', this)">👁</span>
+      </div>
+      <div class="strength-bar">
+        <div class="strength-seg" id="sb0"></div>
+        <div class="strength-seg" id="sb1"></div>
+        <div class="strength-seg" id="sb2"></div>
+        <div class="strength-seg" id="sb3"></div>
+      </div>
+      <div class="hint show" id="passHint" style="margin-top:10px;">Min 8 chars · uppercase · number · symbol</div>
+
+      <div class="field" style="margin-top:20px;">
+        <input type="password" id="confirmInput" placeholder=" " oninput="validateConfirm()" />
+        <label>Confirm Password</label>
+        <span class="eye" onclick="togglePass('confirmInput', this)">👁</span>
+        <div class="hint" id="confirmHint"></div>
+      </div>
+
+      <div class="check-row" style="margin-top:8px;">
+        <div class="check-box" id="tos" onclick="toggleCheck('tos', 'btnPass')"></div>
+        <div class="check-label">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></div>
+      </div>
+
+      <div style="margin-top: auto; padding-top: 8px;">
+        <button class="btn-primary" id="btnPass" onclick="submitPass()" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SCREEN 4 — INTERESTS -->
+    <div class="screen" id="screen-4">
+      <div class="label-super">Step 4 of 4</div>
+      <h1>Your<br /><em>Interests</em></h1>
+      <p class="sub">Pick a few things you love — we'll tailor what you see.</p>
+      <div class="scroll-area">
+        <div class="pills" id="pillsContainer">
+          <div class="pill" onclick="togglePill(this)">🎨 Design</div>
+          <div class="pill" onclick="togglePill(this)">💻 Tech</div>
+          <div class="pill" onclick="togglePill(this)">📷 Photography</div>
+          <div class="pill" onclick="togglePill(this)">🎵 Music</div>
+          <div class="pill" onclick="togglePill(this)">✈️ Travel</div>
+          <div class="pill" onclick="togglePill(this)">🍳 Food & Cooking</div>
+          <div class="pill" onclick="togglePill(this)">📚 Reading</div>
+          <div class="pill" onclick="togglePill(this)">🏃 Fitness</div>
+          <div class="pill" onclick="togglePill(this)">🎮 Gaming</div>
+          <div class="pill" onclick="togglePill(this)">🌿 Wellness</div>
+          <div class="pill" onclick="togglePill(this)">🎬 Film</div>
+          <div class="pill" onclick="togglePill(this)">🚀 Space</div>
+          <div class="pill" onclick="togglePill(this)">🎭 Arts</div>
+          <div class="pill" onclick="togglePill(this)">💡 Startups</div>
+        </div>
+        <div style="margin-top:8px;">
+          <button class="btn-primary" id="btnInterests" onclick="submitInterests()" disabled>Finish Setup →</button>
+          <button class="btn-ghost" onclick="submitInterests()">Skip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ SCREEN 5 — SUCCESS -->
+    <div class="screen" id="screen-5" style="text-align:center; justify-content:center; align-items:center;">
+      <div class="avatar-preview" id="avatarPreview">L</div>
+      <div class="success-ring">
+        <svg viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="8,22 18,32 36,14" stroke="#c9a96e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="label-super">You're in</div>
+      <h1 id="successTitle">Welcome,<br /><em>Luminary.</em></h1>
+      <p class="sub" style="margin-bottom:0;">Your account is ready. Start exploring what's curated just for you.</p>
+      <div class="chosen-pills" id="chosenPills"></div>
+      <button class="btn-primary" style="margin-top:28px;" onclick="alert('Navigating to home…')">Enter the App →</button>
+    </div>
+
+  </div><!-- /screens -->
+</div><!-- /shell -->
+
+<script>
+  /* ─── State ─── */
+  let currentScreen = 0;
+  const totalSteps = 4;
+  const userData = { firstName: '', lastName: '', email: '', password: '', interests: [] };
+
+  /* ─── Navigation ─── */
+  function goTo(n) {
+    const prev = document.getElementById('screen-' + currentScreen);
+    const next = document.getElementById('screen-' + n);
+    prev.classList.add('exit');
+    setTimeout(() => { prev.classList.remove('active', 'exit'); }, 450);
+    next.classList.add('active');
+    currentScreen = n;
+    updateUI();
+  }
+
+  function nextScreen() { if (currentScreen < 5) goTo(currentScreen + 1); }
+  function goBack()     { if (currentScreen > 0) goTo(currentScreen - 1); }
+
+  function updateUI() {
+    const wrap = document.getElementById('progressWrap');
+    const back = document.getElementById('backBtn');
+    const showProgress = currentScreen >= 1 && currentScreen <= 4;
+    wrap.classList.toggle('hidden', !showProgress);
+    back.classList.toggle('hidden', currentScreen < 1 || currentScreen > 4);
+
+    if (showProgress) {
+      for (let i = 0; i < 4; i++) {
+        const seg = document.getElementById('p' + i);
+        seg.classList.remove('active', 'done');
+        if (i < currentScreen - 1)  seg.classList.add('done');
+        if (i === currentScreen - 1) seg.classList.add('active');
+      }
+    }
+  }
+
+  /* ─── Screen 1: Name ─── */
+  function validateName() {
+    const f = document.getElementById('firstName').value.trim();
+    const l = document.getElementById('lastName').value.trim();
+    document.getElementById('btnName').disabled = !(f.length >= 2 && l.length >= 2);
+  }
+  function submitName() {
+    userData.firstName = document.getElementById('firstName').value.trim();
+    userData.lastName  = document.getElementById('lastName').value.trim();
+    nextScreen();
+  }
+
+  /* ─── Screen 2: Email ─── */
+  function validateEmail() {
+    const v = document.getElementById('emailInput').value.trim();
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const hint = document.getElementById('emailHint');
+    const valid = re.test(v);
+    document.getElementById('btnEmail').disabled = !valid;
+    if (v.length > 4 && !valid) {
+      hint.textContent = 'Please enter a valid email address.';
+      hint.className = 'hint show error';
+    } else if (valid) {
+      hint.textContent = '✓ Looks good!';
+      hint.className = 'hint show ok';
+    } else {
+      hint.className = 'hint';
+    }
+  }
+  function submitEmail() {
+    userData.email = document.getElementById('emailInput').value.trim();
+    nextScreen();
+  }
+
+  /* ─── Screen 3: Password ─── */
+  let tosChecked = false;
+  let passOk = false, confirmOk = false;
+
+  function togglePass(id, eye) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+    eye.textContent = el.type === 'password' ? '👁' : '🙈';
+  }
+
+  function scorePassword(p) {
+    let s = 0;
+    if (p.length >= 8) s++;
+    if (/[A-Z]/.test(p))  s++;
+    if (/[0-9]/.test(p))  s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+    return s;
+  }
+
+  function validatePass() {
+    const p = document.getElementById('passInput').value;
+    const score = scorePassword(p);
+    const labels = ['', 's-weak', 's-medium', 's-medium', 's-strong'];
+    const segs = ['sb0','sb1','sb2','sb3'];
+    segs.forEach((id, i) => {
+      const el = document.getElementById(id);
+      el.className = 'strength-seg';
+      if (i < score) el.classList.add(labels[score]);
+    });
+    const hint = document.getElementById('passHint');
+    const msgs = ['', 'Weak password', 'Getting there…', 'Almost strong!', 'Strong password ✓'];
+    hint.textContent = p.length ? msgs[score] : 'Min 8 chars · uppercase · number · symbol';
+    hint.className = 'hint show' + (score <= 1 && p.length ? ' error' : score === 4 ? ' ok' : '');
+    passOk = score >= 3;
+    checkPassBtn();
+    validateConfirm();
+  }
+
+  function validateConfirm() {
+    const p = document.getElementById('passInput').value;
+    const c = document.getElementById('confirmInput').value;
+    const hint = document.getElementById('confirmHint');
+    if (!c.length) { hint.className = 'hint'; confirmOk = false; }
+    else if (c === p) { hint.textContent = '✓ Passwords match'; hint.className = 'hint show ok'; confirmOk = true; }
+    else { hint.textContent = 'Passwords do not match'; hint.className = 'hint show error'; confirmOk = false; }
+    checkPassBtn();
+  }
+
+  function toggleCheck(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('checked');
+    tosChecked = el.classList.contains('checked');
+    checkPassBtn();
+  }
+
+  function checkPassBtn() {
+    document.getElementById('btnPass').disabled = !(passOk && confirmOk && tosChecked);
+  }
+
+  function submitPass() {
+    userData.password = document.getElementById('passInput').value;
+    nextScreen();
+  }
+
+  /* ─── Screen 4: Interests ─── */
+  function togglePill(el) {
+    el.classList.toggle('selected');
+    const selected = document.querySelectorAll('.pill.selected');
+    document.getElementById('btnInterests').disabled = selected.length < 1;
+  }
+
+  function submitInterests() {
+    userData.interests = [...document.querySelectorAll('.pill.selected')].map(p => p.textContent.trim());
+    buildSuccessScreen();
+    nextScreen();
+  }
+
+  /* ─── Screen 5: Success ─── */
+  function buildSuccessScreen() {
+    const name = userData.firstName || 'Friend';
+    const initial = name.charAt(0).toUpperCase();
+    document.getElementById('avatarPreview').textContent = initial;
+    document.getElementById('successTitle').innerHTML =
+      'Welcome,<br /><em>' + name + '.</em>';
+    const container = document.getElementById('chosenPills');
+    container.innerHTML = userData.interests.map(t =>
+      '<div class="chosen-pill">' + t + '</div>'
+    ).join('');
+  }
+</script>
+</body>
+</html>
